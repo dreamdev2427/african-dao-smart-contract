@@ -19,7 +19,8 @@ contract CampaignFactory is Ownable{
     uint public proposalCount;
     uint public minRateForVoting = 100; //0.01 percent
     uint public proposalLiveTime = 7 * 3600 * 24;
-    uint public TVLofSecurityToken;
+    uint public TVL_OF_SECURITY_TOKEN;
+    uint private MAX_QUORIUM = 10000;
     address public securityTokenAddress = 0x2c77D3161533129cA2c8745B6e4ED345c3EDf96d;
 
     constructor(address _securityTokenAddr, uint _minRate, uint _proposalLT, uint _tvl)
@@ -27,14 +28,18 @@ contract CampaignFactory is Ownable{
         securityTokenAddress = _securityTokenAddr;
         minRateForVoting = _minRate;
         proposalLiveTime = _proposalLT; //time unit is second
-        TVLofSecurityToken = _tvl;
+        TVL_OF_SECURITY_TOKEN = _tvl;
     }
 
     mapping(address => mapping(uint => bool)) public voterLookup;
     mapping(uint => Proposal) public candidateLookup;
 
-    function setTVLofSecurityToken(uint _tvl)  external onlyOwner {
-        TVLofSecurityToken = _tvl;
+    function setProposalLiveTime(uint _liveT) external onlyOwner {
+        proposalLiveTime = _liveT;
+    }
+
+    function setTVL_OF_SECURITY_TOKEN(uint _tvl)  external onlyOwner {
+        TVL_OF_SECURITY_TOKEN = _tvl;
     }
 
     function setSecurityTokenAddress(address _addr)  external onlyOwner {
@@ -58,7 +63,7 @@ contract CampaignFactory is Ownable{
         uint[] memory createdAts = new uint[](proposalCount);
         for (uint i = 0; i < proposalCount; i++) {
             IDsOnDB[i] = candidateLookup[i].IDOnDB;
-            voteCounts[i] = candidateLookup[i].voteCount;
+            voteCounts[i] = candidateLookup[i].voteCount; // on the frontend we should check the voteCount is bigger then 5100 or not
             createdAts[i] = candidateLookup[i].createdAt;
         }
         return (IDsOnDB, voteCounts, createdAts);
@@ -67,12 +72,13 @@ contract CampaignFactory is Ownable{
     function vote(uint id) external {
         require (!voterLookup[msg.sender][id]);
         require (id >= 0 && id <= proposalCount-1);
-        require (IERC20(securityTokenAddress).balanceOf(msg.sender) >= TVLofSecurityToken.mul(minRateForVoting).div(10000));
+        require (IERC20(securityTokenAddress).balanceOf(msg.sender) >= TVL_OF_SECURITY_TOKEN.mul(minRateForVoting).div(10000));
         require( candidateLookup[id].createdAt + proposalLiveTime  >= block.timestamp);
 
-        candidateLookup[id].voteCount++;
+        candidateLookup[id].voteCount =  candidateLookup[id].voteCount.add(IERC20(securityTokenAddress).balanceOf(msg.sender).mul(MAX_QUORIUM).div(TVL_OF_SECURITY_TOKEN));
         emit votedEvent(id);
     }
 
     event votedEvent(uint indexed id);
 }
+
