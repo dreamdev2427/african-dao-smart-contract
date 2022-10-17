@@ -12,22 +12,22 @@ contract CampaignFactory is Ownable{
     struct Proposal {
         uint id;
         string IDOnDB;
-        uint voteCount;
+        uint quorumCount;
         uint createdAt;
     }
 
     uint public proposalCount;
-    uint public minRateForVoting = 100; //0.01 percent
-    uint public proposalLiveTime = 7 * 3600 * 24;
+    uint public MIN_RATE_FOR_VOTING = 100; //0.01 percent
+    uint public LIVE_TIME_OF_PROPOSAL = 7 * 3600 * 24;
     uint public TVL_OF_SECURITY_TOKEN;
-    uint private MAX_QUORIUM = 10000;
+    uint public MAX_QUORUM = 10000;
     address public securityTokenAddress = 0x2c77D3161533129cA2c8745B6e4ED345c3EDf96d;
 
     constructor(address _securityTokenAddr, uint _minRate, uint _proposalLT, uint _tvl)
     {
         securityTokenAddress = _securityTokenAddr;
-        minRateForVoting = _minRate;
-        proposalLiveTime = _proposalLT; //time unit is second
+        MIN_RATE_FOR_VOTING = _minRate;
+        LIVE_TIME_OF_PROPOSAL = _proposalLT; //time unit is second
         TVL_OF_SECURITY_TOKEN = _tvl;
     }
 
@@ -35,7 +35,7 @@ contract CampaignFactory is Ownable{
     mapping(uint => Proposal) public candidateLookup;
 
     function setProposalLiveTime(uint _liveT) external onlyOwner {
-        proposalLiveTime = _liveT;
+        LIVE_TIME_OF_PROPOSAL = _liveT;
     }
 
     function setTVL_OF_SECURITY_TOKEN(uint _tvl)  external onlyOwner {
@@ -47,7 +47,7 @@ contract CampaignFactory is Ownable{
     }
 
     function setMinTokenForVoting(uint _minRate)  external onlyOwner {
-        minRateForVoting = _minRate;
+        MIN_RATE_FOR_VOTING = _minRate;
     }
 
     function addProposals(string[] memory _idOnDBs) external onlyOwner {
@@ -59,23 +59,23 @@ contract CampaignFactory is Ownable{
 
     function getProposals() external view returns (string[] memory, uint[] memory, uint[] memory) {
         string[] memory IDsOnDB = new string[](proposalCount);
-        uint[] memory voteCounts = new uint[](proposalCount);
+        uint[] memory quorumCounts = new uint[](proposalCount);
         uint[] memory createdAts = new uint[](proposalCount);
         for (uint i = 0; i < proposalCount; i++) {
             IDsOnDB[i] = candidateLookup[i].IDOnDB;
-            voteCounts[i] = candidateLookup[i].voteCount; // on the frontend we should check the voteCount is bigger then 5100 or not
+            quorumCounts[i] = candidateLookup[i].quorumCount; // on the frontend we should check the quorumCount is bigger then 5100 or not
             createdAts[i] = candidateLookup[i].createdAt;
         }
-        return (IDsOnDB, voteCounts, createdAts);
+        return (IDsOnDB, quorumCounts, createdAts);
     }
 
     function vote(uint id) external {
         require (!voterLookup[msg.sender][id]);
         require (id >= 0 && id <= proposalCount-1);
-        require (IERC20(securityTokenAddress).balanceOf(msg.sender) >= TVL_OF_SECURITY_TOKEN.mul(minRateForVoting).div(10000));
-        require( candidateLookup[id].createdAt + proposalLiveTime  >= block.timestamp);
+        require (IERC20(securityTokenAddress).balanceOf(msg.sender) >= TVL_OF_SECURITY_TOKEN.mul(MIN_RATE_FOR_VOTING).div(10000));
+        require( candidateLookup[id].createdAt + LIVE_TIME_OF_PROPOSAL  >= block.timestamp);
 
-        candidateLookup[id].voteCount =  candidateLookup[id].voteCount.add(IERC20(securityTokenAddress).balanceOf(msg.sender).mul(MAX_QUORIUM).div(TVL_OF_SECURITY_TOKEN));
+        candidateLookup[id].quorumCount =  candidateLookup[id].quorumCount.add(IERC20(securityTokenAddress).balanceOf(msg.sender).mul(MAX_QUORUM).div(TVL_OF_SECURITY_TOKEN));
         emit votedEvent(id);
     }
 
