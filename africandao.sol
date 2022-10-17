@@ -60,13 +60,13 @@ contract CampaignFactory is Ownable{
     function getProposals() external view returns (string[] memory, uint[] memory, uint[] memory) {
         string[] memory IDsOnDB = new string[](proposalCount);
         uint[] memory quorumCounts = new uint[](proposalCount);
-        uint[] memory createdAts = new uint[](proposalCount);
+        uint[] memory createdTimes = new uint[](proposalCount);
         for (uint i = 0; i < proposalCount; i++) {
             IDsOnDB[i] = candidateLookup[i].IDOnDB;
             quorumCounts[i] = candidateLookup[i].quorumCount; // on the frontend we should check the quorumCount is bigger then 5100 or not
-            createdAts[i] = candidateLookup[i].createdAt;
+            createdTimes[i] = candidateLookup[i].createdAt;
         }
-        return (IDsOnDB, quorumCounts, createdAts);
+        return (IDsOnDB, quorumCounts, createdTimes);
     }
 
     function vote(uint id) external {
