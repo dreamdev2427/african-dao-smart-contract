@@ -18,7 +18,7 @@ contract CampaignFactory is Ownable{
 
     uint public proposalCount;
     uint public MIN_RATE_FOR_VOTING = 100; //0.01 percent
-    uint public LIVE_TIME_OF_PROPOSAL = 7 * 3600 * 24;
+    uint public LIVE_TIME_OF_PROPOSAL = 10 * 3600 * 24;
     uint public TVL_OF_SECURITY_TOKEN;
     uint public MAX_QUORUM = 10000;
     address public securityTokenAddress = 0x2c77D3161533129cA2c8745B6e4ED345c3EDf96d;
