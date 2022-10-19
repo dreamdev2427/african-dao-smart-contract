@@ -10,16 +10,16 @@ contract CampaignFactory is Ownable{
     using SafeMath for uint256;
 
     struct Proposal {
-        uint id;
-        string IDOnDB;
-        uint quorumCount;
+        uint id; //index from 0, to 1,2,3,...
+        string IDOnDB;  //"aaaaa", "bbbbb", ...
+        uint quorumCount;  //0, 1, 2, ..
         uint createdAt;
     }
 
     uint public proposalCount;
     uint public MIN_RATE_FOR_VOTING = 100; //0.01 percent
     uint public LIVE_TIME_OF_PROPOSAL = 10 * 3600 * 24;
-    uint public TVL_OF_SECURITY_TOKEN;
+    uint public TVL_OF_SECURITY_TOKEN = 1000000000000 * 10e18;  //asume that TVL of security token is 1,000,000,000,000
     uint public MAX_QUORUM = 10000;
     address public securityTokenAddress = 0x2c77D3161533129cA2c8745B6e4ED345c3EDf96d;
 
@@ -74,7 +74,8 @@ contract CampaignFactory is Ownable{
         require (id >= 0 && id <= proposalCount-1);
         require (IERC20(securityTokenAddress).balanceOf(msg.sender) >= TVL_OF_SECURITY_TOKEN.mul(MIN_RATE_FOR_VOTING).div(10000));
         require( candidateLookup[id].createdAt + LIVE_TIME_OF_PROPOSAL  >= block.timestamp);
-
+        voterLookup[msg.sender][id] = true;
+        
         candidateLookup[id].quorumCount =  candidateLookup[id].quorumCount.add(IERC20(securityTokenAddress).balanceOf(msg.sender).mul(MAX_QUORUM).div(TVL_OF_SECURITY_TOKEN));
         emit votedEvent(id);
     }
