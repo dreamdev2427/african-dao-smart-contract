@@ -19,9 +19,9 @@ contract CampaignFactory is Ownable{
     uint public proposalCount;
     uint public MIN_RATE_FOR_VOTING = 100; //0.01 percent
     uint public LIVE_TIME_OF_PROPOSAL = 10 * 3600 * 24;
-    uint public TVL_OF_SECURITY_TOKEN = 1000000000000 * 10e18;  //asume that TVL of security token is 1,000,000,000,000
+    uint public TVL_OF_SECURITY_TOKEN = 50000000000  * 10e18;  //asume that TVL of security token is 1,000,000,000,000
     uint public MAX_QUORUM = 10000;
-    address public securityTokenAddress = 0x2c77D3161533129cA2c8745B6e4ED345c3EDf96d;
+    address public securityTokenAddress = 0x290d621d758daa92Bd44A21530f8F707f9614d2D;
 
     constructor(address _securityTokenAddr, uint _minRate, uint _proposalLT, uint _tvl)
     {
